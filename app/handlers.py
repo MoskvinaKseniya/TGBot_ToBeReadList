@@ -1,4 +1,5 @@
 import re
+import app.database.requests as rq
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
@@ -11,6 +12,7 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    await rq.set_user(message.from_user.id)
     await message.answer("Привет! Я бот, который поможет тебе не забыть прочитать статьи, найденные в интернете.\n"
                          "- Чтобы я запомнил статью, отправь мне ссылку на нее. Например: https://example.com\n"
                          "- Чтобы получить случайную статью из списка - отправь команду /get_article.\n"

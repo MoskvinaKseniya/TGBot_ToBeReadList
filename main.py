@@ -4,6 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher
 
 from app.handlers import router
+from app.database.model import async_main
 from config import TOKEN
 
 # инициализируем подключение к тг-боту и диспетчер
@@ -12,6 +13,7 @@ dp = Dispatcher(bot=bot)
 
 
 async def main():
+    await async_main()
     dp.include_router(router)
     # запрос на сервера telegram
     await dp.start_polling(bot)
