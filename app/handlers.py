@@ -12,7 +12,7 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await rq.set_user(message.from_user.id)
+    await rq.add_user(message.from_user.id)
     await message.answer("Привет! Я бот, который поможет тебе не забыть прочитать статьи, найденные в интернете.\n"
                          "- Чтобы я запомнил статью, отправь мне ссылку на нее. Например: https://example.com\n"
                          "- Чтобы получить случайную статью из списка - отправь команду /get_article.\n"
@@ -23,6 +23,7 @@ async def cmd_start(message: Message):
 # Для вывода случайной записи из БД
 @router.message(Command("get_article"))
 async def get_link(message: Message):
+
     link = 'https://example.com'
     if link != '':
         await message.answer("Вы хотели почитать:\n" + link + "\nСамое время это сделать!")
@@ -35,9 +36,13 @@ async def get_link(message: Message):
 async def save_link(message: Message):
     # Получаем ссылку из сообщения
     url = re.search(URL_PATTERN, message.text).group(0)
-
-    # Здесь можно добавить любую логику для работы с полученной ссылкой
-    if True:
-        await message.reply("Сохранил, спасибо!")
+    if len(url) > 256:
+        await message.answer("Пожалуйста, введите ссылку размером до 256 символов.")
     else:
-        await message.reply("Упс, вы уже это сохраняли :)")
+        await message.answer(await rq.add_article(message.from_user.id, url))
+
+    # # Здесь можно добавить любую логику для работы с полученной ссылкой
+    # if True:
+    #     await message.reply("Сохранил, спасибо!")
+    # else:
+    #     await message.reply("Упс, вы уже это сохраняли :)")
