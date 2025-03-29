@@ -3,8 +3,8 @@ import logging
 
 from aiogram import Bot, Dispatcher
 
-from app.handlers import router
 from app.database.model import async_main
+from app.handlers import router
 from config import TOKEN
 
 # инициализируем подключение к тг-боту и диспетчер

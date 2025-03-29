@@ -1,7 +1,8 @@
 import random
-from app.database.model import async_session
-from app.database.model import Article, User
-from sqlalchemy import select, delete, and_
+
+from sqlalchemy import and_, delete, select
+
+from app.database.model import Article, User, async_session
 
 
 # функция добавляет пользователей в бд
@@ -32,15 +33,19 @@ async def add_article(tg_id: int, url: str):
         return message
 
 
-# функция достает статью пользователю и удаляет её
+# функция достает ссылку на статью пользователю и удаляет её
 async def get_article(tg_id: int):
     # начинаем сессию через контекстный менеджер
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        articles = await session.scalar(select(Article).where(Article.user_id == user.id))
+        articles = await session.execute(select(Article).where(Article.user_id == user.id))
+        articles = articles.scalars().all()
+
+        if not articles:
+            return
 
         # выбираем случайную статью для пользователя и удаляем её из бд
         article = random.choice(articles)
         await session.execute(delete(Article).where(Article.id == article.id))
         await session.commit()
-        return article
+        return article.url

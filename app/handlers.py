@@ -1,11 +1,13 @@
 import re
-import app.database.requests as rq
+
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
-# Регулярное выражение для проверки ссылок
-URL_PATTERN = r'(https?://[^\s]+)'
+import app.database.requests as rq
+
+# регулярное выражение для проверки ссылок
+URL_PATTERN = r'^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$'
 
 router = Router()
 
@@ -20,19 +22,18 @@ async def cmd_start(message: Message):
                          " Тебе точно надо будет её изучить.")
 
 
-# Для вывода случайной записи из БД
+# для вывода случайной записи из БД
 @router.message(Command("get_article"))
 async def get_link(message: Message):
-
-    link = 'https://example.com'
-    if link != '':
-        await message.answer("Вы хотели почитать:\n" + link + "\nСамое время это сделать!")
+    link = await rq.get_article(message.from_user.id)
+    if not link:
+        await message.answer("Вы пока не сохранили ни одной статьи. Если нашли что-то стоящее, я жду!")
     else:
-        await message.answer("Вы пока не сохранили ни одной статьи :( Если нашли что-то стоящее, я жду!")
+        await message.answer("Вы хотели почитать:\n" + link + "\nСамое время это сделать!")
 
 
-# Для сообщений, содержащих ссылку
-@router.message(lambda message: re.search(URL_PATTERN, message.text))
+# для сообщений, содержащих ссылку
+@router.message(lambda message: message.text and re.search(URL_PATTERN, message.text))
 async def save_link(message: Message):
     # Получаем ссылку из сообщения
     url = re.search(URL_PATTERN, message.text).group(0)
@@ -41,8 +42,12 @@ async def save_link(message: Message):
     else:
         await message.answer(await rq.add_article(message.from_user.id, url))
 
-    # # Здесь можно добавить любую логику для работы с полученной ссылкой
-    # if True:
-    #     await message.reply("Сохранил, спасибо!")
-    # else:
-    #     await message.reply("Упс, вы уже это сохраняли :)")
+
+# обработка всех остальных сообщений
+@router.message()
+async def other_messages(message: Message):
+    # if message.voice or message.video or message.photo or message.sticker or message.document or message.animation:
+    if not message.text:
+        await message.answer("Не понимаю вас, попробуйте отправить ссылку или одну из команд в меню.")
+    else:
+        await message.answer("Проверьте корректность ссылки или используйте одну из команд в меню.")
