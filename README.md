@@ -35,4 +35,6 @@ pip install -r requirements.txt
 ```
 не забудьте вставить токен своего бота в файле config.py!
 
+Python 3.13.0
+
 
